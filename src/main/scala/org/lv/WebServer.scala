@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 import org.lv.oversee.domain._
 
 import scala.io.StdIn
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 object WebServer {
   def main(args: Array[String]) {
@@ -22,11 +22,11 @@ object WebServer {
     val route =
       path("buildings" / """\w+""".r / "badges" / """\w+""".r) { (buildingId, badgeId) =>
         get {
-
           val handler = new CheckIn(buildingRepository)
           val responseText = handler.handle(BuildingId.fromString(buildingId).get, BadgeId.fromString(badgeId).get) match {
-            case Success(building) => "ok"
-            case Failure(failure) => "ko"
+            case Success(Right(badgeCheckedIn)) => "accepted"
+            case Success(Left(accessRefused)) => "refused"
+            case _ => "error"
           }
 
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, responseText))
