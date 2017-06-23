@@ -13,7 +13,7 @@ class BuildingSuite extends FunSuite{
 
     // Then
     assert(building.getRecordedEvents.length == 1)
-    assert(building.getRecordedEvents(0).isInstanceOf[BadgeCheckedIn])
+    assert(building.getRecordedEvents.head.isInstanceOf[BadgeCheckedIn])
   }
 
   test("Building should not check in twice same badge id") {
@@ -27,7 +27,7 @@ class BuildingSuite extends FunSuite{
 
     // Then
     assert(building.getRecordedEvents.length == 2)
-    assert(building.getRecordedEvents(0).isInstanceOf[BadgeCheckedIn])
+    assert(building.getRecordedEvents.head.isInstanceOf[BadgeCheckedIn])
     assert(building.getRecordedEvents(1).isInstanceOf[AccessRefused])
   }
 }
