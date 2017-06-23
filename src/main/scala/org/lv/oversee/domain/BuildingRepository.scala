@@ -12,6 +12,6 @@ object EntityNotFoundRepository {
   def withNotFound[A, B](exec: A => Option[B])(id: A): Try[B] =
     exec(id) match {
       case Some(v) => Try(v)
-      case _ => Failure(new Error("..."))
+      case _ => Failure(new Error("Not found"))
     }
 }

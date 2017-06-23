@@ -20,12 +20,24 @@ object WebServer {
     val buildingRepository = new InMemoryBuildingRepository()
 
     val route =
-      path("buildings" / """\w+""".r / "badges" / """\w+""".r) { (buildingId, badgeId) =>
+      path("buildings" / """\w+""".r / "badges" / """\w+""".r / "checkin") { (buildingId, badgeId) =>
         get {
           val handler = new CheckIn(buildingRepository)
           val responseText = handler.handle(BuildingId.fromString(buildingId).get, BadgeId.fromString(badgeId).get) match {
-            case Success(Right(badgeCheckedIn)) => "accepted"
-            case Success(Left(accessRefused)) => "refused"
+            case Success(Right(badgeCheckedIn)) => "checked in"
+            case Success(Left(accessRefused)) => "access refused"
+            case _ => "error"
+          }
+
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, responseText))
+        }
+      } ~
+      path("buildings" / """\w+""".r / "badges" / """\w+""".r / "checkout") { (buildingId, badgeId) =>
+        get {
+          val handler = new CheckOut(buildingRepository)
+          val responseText = handler.handle(BuildingId.fromString(buildingId).get, BadgeId.fromString(badgeId).get) match {
+            case Success(Right(badgeCheckedOut)) => "checked out"
+            case Success(Left(badgeCheckedOutAgain)) => "checked out again"
             case _ => "error"
           }
 
