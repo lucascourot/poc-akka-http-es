@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import org.lv.oversee.domain.BadgeId
+import org.lv.oversee.domain._
 
 import scala.io.StdIn
 import scala.util.{Failure, Success}
@@ -17,13 +17,16 @@ object WebServer {
     implicit val materializer = ActorMaterializer()
     // needed for the future flatMap/onComplete in the end
     implicit val executionContext = system.dispatcher
+    val buildingRepository = new InMemoryBuildingRepository()
 
     val route =
       path("buildings" / """\w+""".r / "badges" / """\w+""".r) { (buildingId, badgeId) =>
         get {
-          val responseText = BadgeId.fromString(badgeId) match {
-            case Success(badge) => s"<h1>Hello ${badge.toString}</h1>"
-            case Failure(exception) => s"<h1>Error: ${exception.getMessage}</h1>"
+
+          val handler = new CheckIn(buildingRepository)
+          val responseText = handler.handle(BuildingId.fromString(buildingId).get, BadgeId.fromString(badgeId).get) match {
+            case Success(building) => "ok"
+            case Failure(failure) => "ko"
           }
 
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, responseText))
