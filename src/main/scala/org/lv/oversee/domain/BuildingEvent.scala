@@ -1,5 +1,9 @@
 package org.lv.oversee.domain
 
+case class BuildingOpen(buildingId: BuildingId) extends DomainEvent[BuildingId] {
+  def getAggregateId: BuildingId = buildingId
+}
+
 case class AccessRefused(buildingId: BuildingId, badgeId: BadgeId, reason: String) extends DomainEvent[BuildingId] {
   def getAggregateId: BuildingId = buildingId
 }

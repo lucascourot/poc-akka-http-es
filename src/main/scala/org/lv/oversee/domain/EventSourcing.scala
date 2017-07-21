@@ -1,6 +1,7 @@
 package org.lv.oversee.domain
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Try
 
 trait DomainEvent[T] {
   type getAggregateId<:T
@@ -21,3 +22,14 @@ trait Aggregate[Type, TypeId] {
 
   def getRecordedEvents: List[DomainEvent[TypeId]] = events.toList
 }
+
+trait EventStore[T] {
+  def commit(stream: Stream[T]): Try[Stream[T]]
+  def load(streamName: StreamName): Try[Option[Stream[T]]]
+}
+
+case class Stream[T](streamName: StreamName, streamEvents: List[DomainEvent[T]]) {
+  def isEmpty: Boolean = streamEvents.isEmpty
+}
+
+case class StreamName(name: String);

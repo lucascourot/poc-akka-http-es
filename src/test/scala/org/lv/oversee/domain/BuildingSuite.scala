@@ -60,4 +60,15 @@ class BuildingSuite extends FunSuite {
     assert(building.getRecordedEvents(1).isInstanceOf[BadgeCheckedOut])
     assert(building.getRecordedEvents(2).isInstanceOf[BadgeCheckedOutAgain])
   }
+
+  test("Should open a building") {
+    // Given
+    val building = new Building(BuildingId.fromString("A").get)
+
+    // When
+    building.open()
+
+    // Then
+    assert(building.getRecordedEvents.length == 1)
+  }
 }

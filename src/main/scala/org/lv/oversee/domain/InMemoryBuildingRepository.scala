@@ -1,23 +1,27 @@
 package org.lv.oversee.domain
 
-import scala.collection.mutable
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
-final class InMemoryBuildingRepository extends BuildingRepository {
-  val eventStore: mutable.HashMap[BuildingId, List[DomainEvent[BuildingId]]] = new mutable.HashMap[BuildingId, List[DomainEvent[BuildingId]]]()
-
+final class InMemoryBuildingRepository(val eventStore: EventStore[BuildingId]) extends BuildingRepository {
   override def get(buildingId: BuildingId): Option[Building] = {
-    val aggregateStream = eventStore.getOrElse(buildingId, List())
+    eventStore.load(StreamName(buildingId.toString)) match {
+      case Success(Some(stream)) => {
+        val building = new Building(buildingId)
 
-    val building = new Building(buildingId)
-
-    Some(building.reconstituteFromHistory(aggregateStream))
+        Some(building.reconstituteFromHistory(stream.streamEvents))
+      }
+      case Success(_) => None
+      case _ => None
+    }
   }
 
   override def save(building: Building): Try[Building] = {
-    val aggregateStream = eventStore.getOrElse(building.buildingId, List())
-    eventStore.put(building.buildingId, aggregateStream ++ building.getRecordedEvents)
-
-    Success(building)
+    eventStore.commit(Stream(
+      StreamName(building.buildingId.toString),
+      building.getRecordedEvents
+    )) match {
+      case Success(_) => Success(building)
+      case Failure(exception) => Failure(exception)
+    }
   }
 }
